@@ -31,7 +31,7 @@ pub struct Transaction {
     pub mempool_time: Option<u64>,
 }
 
-#[derive(Deserialize, Serialize, Debug, Clone)]
+#[derive(Deserialize, Serialize, Debug)]
 pub struct Config {
     pub web_socket_url: String,
 }

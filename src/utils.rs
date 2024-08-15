@@ -1,5 +1,8 @@
-use crate::data_structure::AppError;
+use csv::Writer;
 use serde_json::Value;
+use std::fs::File;
+
+use crate::data_structure::AppError;
 
 pub fn trim_str(data: &Value) -> String {
     data.to_string().trim_matches('"').to_string()
@@ -17,4 +20,18 @@ pub fn hex_to_string(data: &Value) -> Result<u64, AppError> {
 pub fn num_to_string(data: &Option<u64>) -> String {
     data.map(|num| num.to_string())
         .unwrap_or_else(|| "No number found".to_string())
+}
+
+pub fn csv_writer() -> Result<Writer<File>, AppError> {
+    let mut wtr: Writer<std::fs::File> = Writer::from_path("transaction_times.csv")?;
+    // Write CSV headers
+    wtr.write_record(&[
+        "Transaction Hash",
+        "Mempool Time (ms)",
+        "Gas Price",
+        "Block Number",
+    ])?;
+    wtr.flush()?;
+
+    Ok(wtr)
 }

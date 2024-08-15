@@ -1,13 +1,7 @@
 use async_tungstenite::tungstenite::protocol::Message;
-use csv::Writer;
 use dotenv::dotenv;
 use futures_util::{SinkExt, StreamExt};
 use log::{error, info, warn};
-use sentinel::{
-    connection::{connect_websocket, load_config},
-    data_structure::{AppError, Transaction, TxHashResponse},
-    utils::{hex_to_string, num_to_string, trim_str},
-};
 use serde_json::{json, Value};
 use std::{
     collections::{HashMap, HashSet},
@@ -20,23 +14,20 @@ use tokio::{
     time::{interval, Duration},
 };
 
+use sentinel::{
+    connection::{connect_websocket, load_config},
+    data_structure::{AppError, Transaction, TxHashResponse},
+    utils::{csv_writer, hex_to_string, num_to_string, trim_str},
+};
+
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn Error>> {
     dotenv().ok();
 
+    // Config
     let config = load_config()?;
-
     // CSV writer
-    let mut wtr = Writer::from_path("transaction_times.csv")?;
-    // Write CSV headers
-    wtr.write_record(&[
-        "Transaction Hash",
-        "Mempool Time (ms)",
-        "Gas Price",
-        "Block Number",
-    ])?;
-    wtr.flush()?;
-
+    let mut wtr = csv_writer()?;
     // Ensure the responses directory exists
     fs::create_dir_all("responses").await?;
 
@@ -98,7 +89,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
 
 
                             if let Some(Ok(Message::Text(response_text))) = fused_read.next().await {
-                                let tx_response: Value = serde_json::from_str(&response_text).unwrap();
+                                let tx_response: Value = serde_json::from_str(&response_text)?;
 
                                 if let Some(result) = tx_response.get("result") {
                                     if result["blockHash"].is_string() {
@@ -128,7 +119,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
 
                                             // Convert block_number to a String
                                             let blck_number_str = num_to_string(&transaction.block_number);
-                                            wtr.write_record(&[&tx_hash, &mempool_time.to_string(), &transaction.gas_price.to_string(), &blck_number_str]).unwrap();
+                                            wtr.write_record(&[&tx_hash, &mempool_time.to_string(), &transaction.gas_price.to_string(), &blck_number_str])?;
                                             // Remove from pending set
                                             pending_txs.remove(&tx_hash);
 
