@@ -755,8 +755,10 @@ dependencies = [
  "dotenv",
  "env_logger",
  "futures-util",
+ "log",
  "serde",
  "serde_json",
+ "thiserror",
  "tokio",
 ]
 
