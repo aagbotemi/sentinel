@@ -6,7 +6,7 @@ use tokio::{
     time::Duration,
 };
 
-use sentinel::{connection::load_config, data_structure::AppError, mempool::scan_mempool};
+use sentinel::{connection::load_config, mempool::mempool::scan_mempool, primitive::AppError};
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn Error>> {

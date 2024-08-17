@@ -2,7 +2,7 @@ use csv::Writer;
 use serde_json::Value;
 use std::fs::File;
 
-use crate::data_structure::AppError;
+use crate::primitive::AppError;
 
 pub fn trim_str(data: &Value) -> String {
     data.to_string().trim_matches('"').to_string()
@@ -26,10 +26,11 @@ pub fn csv_writer() -> Result<Writer<File>, AppError> {
     let mut wtr: Writer<std::fs::File> = Writer::from_path("transaction_times.csv")?;
     // Write CSV headers
     wtr.write_record(&[
-        "Transaction Hash",
-        "Mempool Time (ms)",
-        "Gas Price",
-        "Block Number",
+        "transaction_hash",
+        "mempool_time (ms)",
+        "gas_price",
+        "block_number",
+        "contract_type",
     ])?;
     wtr.flush()?;
 

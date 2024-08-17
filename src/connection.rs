@@ -5,7 +5,7 @@ use async_tungstenite::{
 use log::info;
 use std::env;
 
-use crate::data_structure::{AppError, Config};
+use crate::primitive::{AppError, Config};
 
 pub fn load_config() -> Result<Config, AppError> {
     Ok(Config {

@@ -3,13 +3,13 @@ use serde::{Deserialize, Serialize};
 use std::env;
 use thiserror::Error;
 
-#[derive(Deserialize)]
+#[derive(Debug, Deserialize)]
 pub struct Params {
     pub result: String,
     pub subscription: String,
 }
 
-#[derive(Deserialize)]
+#[derive(Debug, Deserialize)]
 pub struct TxHashResponse {
     pub jsonrpc: String,
     pub method: String,
@@ -29,6 +29,7 @@ pub struct Transaction {
     pub input: String,
     pub nonce: u64,
     pub mempool_time: Option<u64>,
+    pub contract_type: ContractType,
 }
 
 #[derive(Deserialize, Serialize, Debug)]
@@ -50,4 +51,11 @@ pub enum AppError {
     EnvVarError(#[from] env::VarError),
     #[error("Other error: {0}")]
     Other(String),
+}
+
+#[derive(Serialize, Deserialize, Debug, PartialEq, Clone, Copy)]
+pub enum ContractType {
+    ExternallyOwnedAccount,
+    ContractAccount,
+    SpecialCaseContract, // possible a proxy or upgradable contract
 }

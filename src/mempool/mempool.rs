@@ -10,7 +10,8 @@ use tokio::{fs::File, io::AsyncWriteExt, time::interval};
 
 use crate::{
     connection::connect_websocket,
-    data_structure::{AppError, Config, Transaction, TxHashResponse},
+    mempool::check_contract_type::is_contract_account,
+    primitive::{AppError, Config, ContractType, Transaction, TxHashResponse},
     utils::{csv_writer, hex_to_string, num_to_string, trim_str},
 };
 
@@ -72,12 +73,30 @@ pub async fn scan_mempool(config: &Config) -> Result<(), AppError> {
                     });
                     write.send(Message::Text(tx_data.to_string())).await?;
 
-
                     if let Some(Ok(Message::Text(response_text))) = fused_read.next().await {
                         let tx_response: Value = serde_json::from_str(&response_text)?;
 
                         if let Some(result) = tx_response.get("result") {
                             if result["blockHash"].is_string() {
+                                let check_contract_code = json!({
+                                    "jsonrpc": "2.0",
+                                    "id": 1,
+                                    "method": "eth_getCode",
+                                    "params": [&result["to"]]
+                                });
+
+                                write.send(Message::Text(check_contract_code.to_string())).await?;
+                                let mut _contract_type: ContractType = ContractType::ExternallyOwnedAccount;
+
+                                // check the contract type
+                                if let Some(Ok(Message::Text(check_contract_code_response_text))) = fused_read.next().await {
+                                    let check_contract_code_tx_response: Value = serde_json::from_str(&check_contract_code_response_text)?;
+                                    let code = &check_contract_code_tx_response["result"];
+
+
+                                    _contract_type = is_contract_account(&code);
+                                }
+
                                 if let Some(start_time) = tx_times.remove(&tx_hash) {
                                     let block_number = hex_to_string(&result["blockNumber"]);
                                     let gas_price = hex_to_string(&result["gasPrice"]);
@@ -99,12 +118,13 @@ pub async fn scan_mempool(config: &Config) -> Result<(), AppError> {
                                         gas_price: gas_price?,
                                         input: trim_str(&result["input"]),
                                         nonce: nonce?,
-                                        mempool_time: Some(mempool_time)
+                                        mempool_time: Some(mempool_time),
+                                        contract_type: _contract_type,
                                     };
 
                                     // Convert block_number to a String
                                     let blck_number_str = num_to_string(&transaction.block_number);
-                                    wtr.write_record(&[&tx_hash, &mempool_time.to_string(), &transaction.gas_price.to_string(), &blck_number_str])?;
+                                    wtr.write_record(&[&tx_hash, &mempool_time.to_string(), &transaction.gas_price.to_string(), &blck_number_str, &_contract_type.as_str().to_string()])?;
                                     // Remove from pending txn
                                     pending_txs.remove(&tx_hash);
 
@@ -120,5 +140,43 @@ pub async fn scan_mempool(config: &Config) -> Result<(), AppError> {
                 }
             }
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::mempool::check_contract_type::is_contract_account;
+
+    #[test]
+    fn test_is_contract_account() {
+        assert_eq!(
+            is_contract_account(&Value::Null),
+            ContractType::ExternallyOwnedAccount
+        );
+        assert_eq!(
+            is_contract_account(&Value::String("0x".to_string())),
+            ContractType::ExternallyOwnedAccount
+        );
+        assert_eq!(
+            is_contract_account(&Value::String("0x0".to_string())),
+            ContractType::ExternallyOwnedAccount
+        );
+        assert_eq!(
+            is_contract_account(&Value::String("".to_string())),
+            ContractType::ExternallyOwnedAccount
+        );
+        assert_eq!(
+            is_contract_account(&Value::String("0x123".to_string())),
+            ContractType::ContractAccount
+        );
+        assert_eq!(
+            is_contract_account(&Value::String("{...}".to_string())),
+            ContractType::SpecialCaseContract
+        );
+        assert_eq!(
+            is_contract_account(&Value::Object(serde_json::Map::new())),
+            ContractType::SpecialCaseContract
+        );
     }
 }
