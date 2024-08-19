@@ -3,13 +3,15 @@ use async_tungstenite::{
     WebSocketStream,
 };
 use log::info;
-use std::env;
+use std::env::{self};
 
 use crate::primitive::{AppError, Config};
 
 pub fn load_config() -> Result<Config, AppError> {
     Ok(Config {
         web_socket_url: env::var("WEB_SOCKET_URL").unwrap(),
+        db_url: env::var("DATABASE_URL").unwrap(),
+        server_url: env::var("SERVER_ADDRESS").unwrap_or("127.0.0.1::3000".to_string()),
     })
 }
 

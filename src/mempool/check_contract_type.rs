@@ -1,7 +1,7 @@
 use crate::primitive::ContractType;
 use serde_json::Value;
 
-pub fn is_contract_account(code: &Value) -> ContractType {
+pub fn check_account_type(code: &Value) -> ContractType {
     match code {
         Value::Null => ContractType::ExternallyOwnedAccount,
         Value::String(s) => {
@@ -18,8 +18,10 @@ pub fn is_contract_account(code: &Value) -> ContractType {
                 }
             }
         }
-        Value::Object(_) => ContractType::SpecialCaseContract, // Handle JSON object as a SpecialCaseContract
-        _ => ContractType::ExternallyOwnedAccount,             // Assume any other type is an EOA
+        // Handle JSON object as a SpecialCaseContract
+        Value::Object(_) => ContractType::SpecialCaseContract,
+        // Assume any other type is an EOA
+        _ => ContractType::ExternallyOwnedAccount,
     }
 }
 
@@ -30,5 +32,42 @@ impl ContractType {
             ContractType::ContractAccount => "ContractAccount",
             ContractType::SpecialCaseContract => "SpecialCaseContract",
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_is_contract_account() {
+        assert_eq!(
+            check_account_type(&Value::Null),
+            ContractType::ExternallyOwnedAccount
+        );
+        assert_eq!(
+            check_account_type(&Value::String("0x".to_string())),
+            ContractType::ExternallyOwnedAccount
+        );
+        assert_eq!(
+            check_account_type(&Value::String("0x0".to_string())),
+            ContractType::ExternallyOwnedAccount
+        );
+        assert_eq!(
+            check_account_type(&Value::String("".to_string())),
+            ContractType::ExternallyOwnedAccount
+        );
+        assert_eq!(
+            check_account_type(&Value::String("0x123".to_string())),
+            ContractType::ContractAccount
+        );
+        assert_eq!(
+            check_account_type(&Value::String("{...}".to_string())),
+            ContractType::SpecialCaseContract
+        );
+        assert_eq!(
+            check_account_type(&Value::Object(serde_json::Map::new())),
+            ContractType::SpecialCaseContract
+        );
     }
 }
