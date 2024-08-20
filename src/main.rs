@@ -21,8 +21,8 @@ use sentinel::{
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn Error>> {
-    dotenv().ok().expect("Unable to access .env file");
-
+    dotenv().ok();
+    
     // Config
     let config = load_config()?;
 
