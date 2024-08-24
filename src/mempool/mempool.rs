@@ -14,7 +14,7 @@ use uuid::Uuid;
 use crate::{
     connection::connect_websocket,
     mempool::check_contract_type::check_account_type,
-    primitive::{AppError, AppState, Config, ContractType, Transaction, TxHashResponse},
+    model::{AppError, AppState, Config, ContractType, Transaction, TxHashResponse},
     service::create_transaction,
     utils::{csv_writer, hex_to_int64, trim_str},
 };

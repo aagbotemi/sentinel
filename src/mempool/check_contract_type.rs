@@ -1,4 +1,4 @@
-use crate::primitive::ContractType;
+use crate::model::ContractType;
 use serde_json::Value;
 
 pub fn check_account_type(code: &Value) -> ContractType {

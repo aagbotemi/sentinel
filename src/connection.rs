@@ -1,11 +1,10 @@
+use crate::model::{AppError, Config};
 use async_tungstenite::{
     tokio::{connect_async, ConnectStream},
     WebSocketStream,
 };
 use log::info;
 use std::env::{self};
-
-use crate::primitive::{AppError, Config};
 
 pub fn load_config() -> Result<Config, AppError> {
     Ok(Config {

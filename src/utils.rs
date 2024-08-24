@@ -1,11 +1,10 @@
+use crate::model::AppError;
 use csv::{Writer, WriterBuilder};
 use serde_json::Value;
 use std::{
     fs::{File, OpenOptions},
     path::Path,
 };
-
-use crate::primitive::AppError;
 
 pub fn trim_str(data: &Value) -> String {
     data.to_string().trim_matches('"').to_string()

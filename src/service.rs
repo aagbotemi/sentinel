@@ -1,11 +1,10 @@
+use crate::model::{AppError, AppState, Transaction, TransactionFilter};
 use axum::{
     extract::{Path, Query, State},
     Json,
 };
 use std::sync::Arc;
 use uuid::Uuid;
-
-use crate::primitive::{AppError, AppState, Transaction, TransactionFilter};
 
 #[axum::debug_handler]
 pub async fn create_transaction(

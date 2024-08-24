@@ -1,28 +1,41 @@
+use async_graphql::http::{playground_source, GraphQLPlaygroundConfig};
+use async_graphql_axum::{GraphQLRequest, GraphQLResponse};
 use axum::{
+    response::IntoResponse,
     routing::{get, post},
-    Router, Server,
+    serve, Extension, Router,
 };
 use dotenv::dotenv;
 use log::error;
+use sentinel::{
+    connection::load_config,
+    graphql::schema::{create_schema, AppSchema, Query},
+    mempool::mempool::scan_mempool,
+    model::{AppError, AppState},
+    service::{create_transaction, filter_transactions, get_transaction_by_id, get_transactions},
+};
 use sqlx::postgres::PgPoolOptions;
-use std::{error::Error, net::TcpListener, sync::Arc};
+use std::{error::Error, sync::Arc};
 use tokio::{
     fs::{self},
+    net::TcpListener,
     signal, task,
     time::Duration,
 };
 
-use sentinel::{
-    connection::load_config,
-    mempool::mempool::scan_mempool,
-    primitive::{AppError, AppState},
-    service::{create_transaction, filter_transactions, get_transaction_by_id, get_transactions},
-};
+#[axum::debug_handler]
+async fn graphql_handler(schema: Extension<AppSchema>, req: GraphQLRequest) -> GraphQLResponse {
+    schema.execute(req.into_inner()).await.into()
+}
+
+async fn graphql_playground() -> impl IntoResponse {
+    axum::response::Html(playground_source(GraphQLPlaygroundConfig::new("/graphql")))
+}
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn Error>> {
     dotenv().ok();
-    
+
     // Config
     let config = load_config()?;
 
@@ -37,27 +50,25 @@ async fn main() -> Result<(), Box<dyn Error>> {
 
     let app_state = Arc::new(AppState { pool });
 
+    let schema = create_schema(app_state.clone());
+
     let app = Router::new()
         .route("/", get(|| async { "Hello World!!!!" }))
         .route("/transactions", get(get_transactions))
         .route("/transactions", post(create_transaction))
         .route("/transactions/:id", get(get_transaction_by_id))
         .route("/transactions/filter", get(filter_transactions))
+        .route("/graphql", get(graphql_playground).post(graphql_handler))
+        .layer(Extension(schema))
         .with_state(app_state.clone());
 
-    let listener = TcpListener::bind(&config.server_url).expect("Could not create TCP Listener");
+    let listener = TcpListener::bind(&config.server_url).await.unwrap();
     println!("listening on {}", listener.local_addr().unwrap());
-
-    // Create the server before spawning the task
-    let server = Server::from_tcp(listener)
-        .unwrap()
-        .serve(app.into_make_service());
 
     // Spawn the web server on a separate task
     let server_task = task::spawn(async move {
-        if let Err(e) = server.await {
-            eprintln!("Server error: {}", e);
-        }
+        // Create the server for spawning the task
+        serve(listener, app).await.unwrap();
     });
 
     println!("Web server started!");
