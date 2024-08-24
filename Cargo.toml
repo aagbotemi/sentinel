@@ -3,9 +3,10 @@ name = "sentinel"
 version = "0.1.0"
 edition = "2021"
 authors = ["Abiodun Awoyemi <aabiodunawoyemi@gmail.com>"]
-description = "This is mempool monitor to index blockchain data"
+description = "Sentinel is a blockchain transaction monitoring system that scans the mempool, processes transactions, and provides a GraphQL API for querying transaction data."
+license = "MIT"
 repository = "https://github.com/aagbotemi/sentinel"
-keywords = ["sentinel", "mempool", "transaction"]
+keywords = ["blockchain", "mempool", "transactions", "graphql"]
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
