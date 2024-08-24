@@ -116,3 +116,35 @@ pub async fn filter_transactions(
 
     Ok(Json(transactions))
 }
+
+#[axum::debug_handler]
+pub async fn get_block(
+    State(state): State<Arc<AppState>>,
+    Path((chainid, block_number)): Path<(Uuid,Uuid)>, // TODO: change the UUid type to the correct type
+) -> Result<Json<Transaction>, AppError> {
+    todo!()
+}
+
+#[axum::debug_handler]
+pub async fn get_transaction(
+    State(state): State<Arc<AppState>>,
+    Path((chainid, block_number, transaction_hash)): Path<(Uuid,Uuid,Uuid)>, // TODO: change the UUid type to the correct type
+) -> Result<Json<Transaction>, AppError> {
+    todo!()
+}
+
+#[axum::debug_handler]
+pub async fn get_native_balance(
+    State(state): State<Arc<AppState>>,
+    Path((chainid, address)): Path<(Uuid,Uuid)>, // TODO: change the UUid type to the correct type
+) -> Result<Json<Transaction>, AppError> {
+    todo!()
+}
+
+#[axum::debug_handler]
+pub async fn get_erc20_balance(
+    State(state): State<Arc<AppState>>,
+    Path((chainid, contract_address, address)): Path<(Uuid,Uuid,Uuid)>, // TODO: change the UUid type to the correct type
+) -> Result<Json<Transaction>, AppError> {
+    todo!()
+}
