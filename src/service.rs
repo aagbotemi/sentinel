@@ -120,7 +120,7 @@ pub async fn filter_transactions(
 #[axum::debug_handler]
 pub async fn get_block(
     State(state): State<Arc<AppState>>,
-    Path((chainid, block_number)): Path<(Uuid,Uuid)>, // TODO: change the UUid type to the correct type
+    Path((chainid, block_number)): Path<(Uuid, Uuid)>, // TODO: change the UUid type to the correct type
 ) -> Result<Json<Transaction>, AppError> {
     todo!()
 }
@@ -128,7 +128,7 @@ pub async fn get_block(
 #[axum::debug_handler]
 pub async fn get_transaction(
     State(state): State<Arc<AppState>>,
-    Path((chainid, block_number, transaction_hash)): Path<(Uuid,Uuid,Uuid)>, // TODO: change the UUid type to the correct type
+    Path((chainid, block_number, transaction_hash)): Path<(Uuid, Uuid, Uuid)>, // TODO: change the UUid type to the correct type
 ) -> Result<Json<Transaction>, AppError> {
     todo!()
 }
@@ -136,7 +136,7 @@ pub async fn get_transaction(
 #[axum::debug_handler]
 pub async fn get_native_balance(
     State(state): State<Arc<AppState>>,
-    Path((chainid, address)): Path<(Uuid,Uuid)>, // TODO: change the UUid type to the correct type
+    Path((chainid, address)): Path<(Uuid, Uuid)>, // TODO: change the UUid type to the correct type
 ) -> Result<Json<Transaction>, AppError> {
     todo!()
 }
@@ -144,7 +144,7 @@ pub async fn get_native_balance(
 #[axum::debug_handler]
 pub async fn get_erc20_balance(
     State(state): State<Arc<AppState>>,
-    Path((chainid, contract_address, address)): Path<(Uuid,Uuid,Uuid)>, // TODO: change the UUid type to the correct type
+    Path((chainid, contract_address, address)): Path<(Uuid, Uuid, Uuid)>, // TODO: change the UUid type to the correct type
 ) -> Result<Json<Transaction>, AppError> {
     todo!()
 }

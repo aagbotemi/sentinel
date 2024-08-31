@@ -18,7 +18,7 @@ struct GraphQLTransaction {
     mempool_time: i64,
     contract_type: String,
 }
-  
+
 pub struct Query;
 
 #[Object]
@@ -84,9 +84,13 @@ impl Query {
         })
     }
 
-    async fn filter_transactions(&self, ctx: &Context<'_>, filter: TransactionFilter) -> async_graphql::Result<Vec<GraphQLTransaction>> {
+    async fn filter_transactions(
+        &self,
+        ctx: &Context<'_>,
+        filter: TransactionFilter,
+    ) -> async_graphql::Result<Vec<GraphQLTransaction>> {
         let state = ctx.data::<Arc<AppState>>()?;
-        
+
         let mut query = String::from("SELECT * FROM transactions WHERE 1=1");
         let mut bindings = vec![];
 
@@ -135,24 +139,26 @@ impl Query {
             .await
             .map_err(|e| async_graphql::Error::new(e.to_string()))?;
 
-        Ok(transactions.into_iter().map(|t| GraphQLTransaction {
-            id: t.id.to_string(),
-            tx_hash: t.tx_hash,
-            block_hash: t.block_hash,
-            block_number: t.block_number,
-            from_sender: t.from_sender,
-            to_reciever: t.to_reciever,
-            tx_value: t.tx_value,
-            gas: t.gas,
-            gas_price: t.gas_price,
-            input: t.input,
-            nonce: t.nonce,
-            mempool_time: t.mempool_time,
-            contract_type: t.contract_type.as_str().to_string(),
-        }).collect())
+        Ok(transactions
+            .into_iter()
+            .map(|t| GraphQLTransaction {
+                id: t.id.to_string(),
+                tx_hash: t.tx_hash,
+                block_hash: t.block_hash,
+                block_number: t.block_number,
+                from_sender: t.from_sender,
+                to_reciever: t.to_reciever,
+                tx_value: t.tx_value,
+                gas: t.gas,
+                gas_price: t.gas_price,
+                input: t.input,
+                nonce: t.nonce,
+                mempool_time: t.mempool_time,
+                contract_type: t.contract_type.as_str().to_string(),
+            })
+            .collect())
     }
 }
-
 
 pub type AppSchema = Schema<Query, EmptyMutation, EmptySubscription>;
 
@@ -174,8 +180,8 @@ pub fn create_schema(state: Arc<AppState>) -> AppSchema {
 //         let state = ctx.data::<Arc<AppState>>()?;
 
 //         let result = sqlx::query_as::<_, Transaction>(
-//             "INSERT INTO transaction (tx_hash, block_hash, block_number, from_sender, to_reciever, tx_value, gas, gas_price, input, nonce, mempool_time, contract_type) 
-//              VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12) 
+//             "INSERT INTO transaction (tx_hash, block_hash, block_number, from_sender, to_reciever, tx_value, gas, gas_price, input, nonce, mempool_time, contract_type)
+//              VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
 //              RETURNING *")
 //             .bind(input.tx_hash)
 //             .bind(input.block_hash)
@@ -210,4 +216,3 @@ pub fn create_schema(state: Arc<AppState>) -> AppSchema {
 //         })
 //     }
 // }
-
