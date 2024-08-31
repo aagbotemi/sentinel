@@ -1,7 +1,9 @@
 use crate::model::AppError;
+use alloy::primitives::ChainId;
 use csv::{Writer, WriterBuilder};
 use serde_json::Value;
 use std::{
+    env::var,
     fs::{File, OpenOptions},
     path::Path,
 };
@@ -42,4 +44,27 @@ pub fn csv_writer(file_path: &str) -> Result<Writer<File>, std::io::Error> {
     }
 
     Ok(wtr)
+}
+
+pub fn get_rpc_url_with_chain_id(chain_id: ChainId) -> String {
+    match chain_id {
+        1 => var("MAINNET_WEB_SOCKET_URL").unwrap(),
+        11155111 => var("SEPOLIA_WEB_SOCKET_URL").unwrap(),
+        534352 => var("SCROLL_WEB_SOCKET_URL").unwrap(),
+        534351 => var("SCROLL_SEPOLIA_WEB_SOCKET_URL").unwrap(),
+        8453 => var("BASE_WEB_SOCKET_URL").unwrap(),
+        84531 => var("BASE_SEPOLIA_WEB_SOCKET_URL").unwrap(),
+        10 => var("OP_WEB_SOCKET_URL").unwrap(),
+        420 => var("OP_SEPOLIA_WEB_SOCKET_URL").unwrap(),
+        56 => var("BINANCE_WEB_SOCKET_URL").unwrap(),
+        137 => var("POLYGON_POS_WEB_SOCKET_URL").unwrap(),
+        1101 => var("POLYGON_ZKEVM_WEB_SOCKET_URL").unwrap(),
+        42161 => var("ARBITRUMONE_WEB_SOCKET_URL").unwrap(),
+        421614 => var("ARBITRUM_SEPOLIA_WEB_SOCKET_URL").unwrap(),
+        324 => var("ZKSYNC_WEB_SOCKET_URL").unwrap(),
+        // sn_main => var("STARKNET_WEB_SOCKET_URL").unwrap(),
+        // sn_sepolia => var("STARKNET_SEPOLIA_WEB_SOCKET_URL").unwrap(),
+        // 900 => var("SOLANA_WEB_SOCKET_URL").unwrap(),
+        _ => "No corresponding rpc url for given chain Id".to_owned(),
+    }
 }

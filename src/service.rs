@@ -1,4 +1,14 @@
-use crate::model::{AppError, AppState, Transaction, TransactionFilter};
+use crate::{
+    model::{AppError, AppState, Transaction, TransactionFilter},
+    rpc_queries::{
+        get_block_query, get_erc20_balance_query, get_native_balance_query, get_transaction_query,
+    },
+    utils::get_rpc_url_with_chain_id,
+};
+use alloy::{
+    primitives::{Address, ChainId, TxHash, U256},
+    rpc::types::eth::{Block, BlockId, BlockNumberOrTag, Transaction as AlloyTx},
+};
 use axum::{
     extract::{Path, Query, State},
     Json,
@@ -117,34 +127,53 @@ pub async fn filter_transactions(
     Ok(Json(transactions))
 }
 
+// append 0x to the block number
 #[axum::debug_handler]
 pub async fn get_block(
     State(state): State<Arc<AppState>>,
-    Path((chainid, block_number)): Path<(Uuid, Uuid)>, // TODO: change the UUid type to the correct type
-) -> Result<Json<Transaction>, AppError> {
-    todo!()
+    Path((chainid, block_number)): Path<(ChainId, BlockId)>,
+) -> Result<Json<Block>, AppError> {
+    let rpc_url = get_rpc_url_with_chain_id(chainid);
+    let block = get_block_query(rpc_url, block_number).await.unwrap();
+    Ok(Json(block))
 }
 
 #[axum::debug_handler]
 pub async fn get_transaction(
     State(state): State<Arc<AppState>>,
-    Path((chainid, block_number, transaction_hash)): Path<(Uuid, Uuid, Uuid)>, // TODO: change the UUid type to the correct type
-) -> Result<Json<Transaction>, AppError> {
-    todo!()
+    Path((chainid, block_number, transaction_hash)): Path<(ChainId, BlockId, TxHash)>,
+) -> Result<Json<AlloyTx>, AppError> {
+    let rpc_url = get_rpc_url_with_chain_id(chainid);
+    let transaction = get_transaction_query(rpc_url, transaction_hash)
+        .await
+        .unwrap();
+    Ok(Json(transaction))
 }
 
 #[axum::debug_handler]
 pub async fn get_native_balance(
     State(state): State<Arc<AppState>>,
-    Path((chainid, address)): Path<(Uuid, Uuid)>, // TODO: change the UUid type to the correct type
-) -> Result<Json<Transaction>, AppError> {
-    todo!()
+    Path((chainid, address)): Path<(ChainId, Address)>,
+) -> Result<Json<u128>, AppError> {
+    let rpc_url = get_rpc_url_with_chain_id(chainid);
+    let balance = get_native_balance_query(rpc_url, address).await.unwrap();
+    let native_balance_hex = U256::from(balance);
+    let native_balance: u128 = native_balance_hex.to::<u128>();
+    Ok(Json(native_balance))
 }
 
 #[axum::debug_handler]
 pub async fn get_erc20_balance(
     State(state): State<Arc<AppState>>,
-    Path((chainid, contract_address, address)): Path<(Uuid, Uuid, Uuid)>, // TODO: change the UUid type to the correct type
-) -> Result<Json<Transaction>, AppError> {
-    todo!()
+    Path((chainid, contract_address, address)): Path<(ChainId, Address, Address)>,
+) -> Result<Json<u128>, AppError> {
+    let rpc_url = get_rpc_url_with_chain_id(chainid);
+    let balance = get_erc20_balance_query(rpc_url, address, contract_address)
+        .await
+        .unwrap();
+
+    let erc20_balance_hex = U256::from(balance);
+    let erc20_balance: u128 = erc20_balance_hex.to::<u128>();
+
+    Ok(Json(erc20_balance))
 }
