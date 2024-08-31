@@ -12,7 +12,7 @@ use sentinel::{
     graphql::schema::{create_schema, AppSchema, Query},
     mempool::mempool::scan_mempool,
     model::{AppError, AppState},
-    service::{create_transaction, filter_transactions, get_transaction_by_id, get_transactions},
+    service::{create_transaction, filter_transactions, get_transaction_by_id, get_transactions, get_block, get_transaction, get_native_balance, get_erc20_balance},
 };
 use sqlx::postgres::PgPoolOptions;
 use std::{error::Error, sync::Arc};
@@ -58,6 +58,10 @@ async fn main() -> Result<(), Box<dyn Error>> {
         .route("/transactions", post(create_transaction))
         .route("/transactions/:id", get(get_transaction_by_id))
         .route("/transactions/filter", get(filter_transactions))
+        .route("/get-block/:chainid/:block_number", get(get_block))
+        .route("/get-transaction/:chainid/:block_number/:transaction_hash", get(get_transaction))
+        .route("/get-native-balance/:chainid/:address", get(get_native_balance))
+        .route("/get-erc20-balance/:chainid/:contract_address/:address", get(get_erc20_balance))
         .route("/graphql", get(graphql_playground).post(graphql_handler))
         .layer(Extension(schema))
         .with_state(app_state.clone());
