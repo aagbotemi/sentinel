@@ -9,7 +9,7 @@ use dotenv::dotenv;
 use log::error;
 use sentinel::{
     connection::load_config,
-    graphql::schema::{create_schema, AppSchema, Query},
+    graphql::schema::{create_schema, AppSchema},
     mempool::mempool::scan_mempool,
     model::{AppError, AppState},
     service::{
@@ -25,6 +25,7 @@ use tokio::{
     signal, task,
     time::Duration,
 };
+use tower_http::cors::{Any, CorsLayer};
 
 #[axum::debug_handler]
 async fn graphql_handler(schema: Extension<AppSchema>, req: GraphQLRequest) -> GraphQLResponse {
@@ -38,6 +39,12 @@ async fn graphql_playground() -> impl IntoResponse {
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn Error>> {
     dotenv().ok();
+
+    // CORS configuration allowing any origin, method, headers
+    let cors = CorsLayer::new()
+        .allow_origin(Any)
+        .allow_methods(Any)
+        .allow_headers(Any);
 
     // Config
     let config = load_config()?;
@@ -56,7 +63,10 @@ async fn main() -> Result<(), Box<dyn Error>> {
     let schema = create_schema(app_state.clone());
 
     let app = Router::new()
-        .route("/", get(|| async { "Hello World!!!!" }))
+        .route(
+            "/",
+            get(|| async { "Sentinel! A blockchain indexing tool." }),
+        )
         .route("/transactions", get(get_transactions))
         .route("/transactions", post(create_transaction))
         .route("/transactions/:id", get(get_transaction_by_id))
@@ -76,6 +86,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
         )
         .route("/graphql", get(graphql_playground).post(graphql_handler))
         .layer(Extension(schema))
+        .layer(Extension(cors))
         .with_state(app_state.clone());
 
     let listener = TcpListener::bind(&config.server_url).await.unwrap();
