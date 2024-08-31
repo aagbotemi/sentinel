@@ -101,10 +101,10 @@ pub async fn scan_mempool(config: &Config, state: &Arc<AppState>) -> Result<(), 
                                 }
 
                                 if let Some(start_time) = tx_times.remove(&tx_hash) {
-                                    let block_hash = hex_to_int64(&result["blockHash"])?.to_string();
+                                    let block_hash = trim_str(&result["blockHash"]);
                                     let block_number = hex_to_int64(&result["blockNumber"])?;
                                     let from_sender = trim_str(&result["from"]);
-                                    let to_reciever = hex_to_int64(&result["to"])?.to_string();
+                                    let to_reciever = trim_str(&result["to"]);
                                     let tx_value = hex_to_int64(&result["value"])?;
                                     let gas = hex_to_int64(&result["gas"])?;
                                     let gas_price = hex_to_int64(&result["gasPrice"])?;

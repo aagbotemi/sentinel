@@ -7,7 +7,7 @@ use crate::{
 };
 use alloy::{
     primitives::{Address, ChainId, TxHash, U256},
-    rpc::types::eth::{Block, BlockId, BlockNumberOrTag, Transaction as AlloyTx},
+    rpc::types::eth::{Block, BlockId, Transaction as AlloyTx},
 };
 use axum::{
     extract::{Path, Query, State},

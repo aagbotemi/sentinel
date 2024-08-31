@@ -3,10 +3,7 @@
 use alloy::{
     primitives::{Address, TxHash, U256},
     providers::{Provider, ProviderBuilder},
-    rpc::{
-        client::WsConnect,
-        types::eth::{Block, BlockId, Transaction},
-    },
+    rpc::types::eth::{Block, BlockId, Transaction},
     sol,
 };
 use std::error::Error;
