@@ -1,9 +1,7 @@
 use async_graphql::http::{playground_source, GraphQLPlaygroundConfig};
 use async_graphql_axum::{GraphQLRequest, GraphQLResponse};
 use axum::{
-    response::IntoResponse,
-    routing::{get, post},
-    serve, Extension, Router,
+    http::Method, response::IntoResponse, routing::{get, post}, serve, Extension, Router
 };
 use dotenv::dotenv;
 use log::error;
@@ -43,7 +41,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
     // CORS configuration allowing any origin, method, headers
     let cors = CorsLayer::new()
         .allow_origin(Any)
-        .allow_methods(Any)
+        .allow_methods([Method::GET, Method::POST])
         .allow_headers(Any);
 
     // Config
@@ -86,7 +84,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
         )
         .route("/graphql", get(graphql_playground).post(graphql_handler))
         .layer(Extension(schema))
-        .layer(Extension(cors))
+        .layer(cors)
         .with_state(app_state.clone());
 
     let listener = TcpListener::bind(&config.server_url).await.unwrap();
